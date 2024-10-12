@@ -4,3 +4,4 @@
 *.jpg
 *.pickle
 *.parquet
+*.csv
