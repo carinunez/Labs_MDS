@@ -2,3 +2,5 @@
 \secuencia_plaza
 *.PNG
 *.jpg
+*.pickle
+*.parquet
