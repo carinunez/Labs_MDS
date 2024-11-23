@@ -5,3 +5,6 @@
 *.pickle
 *.parquet
 *.csv
+*.zip
+lab11/pdf_LLM/
+Lab_11copy2.ipynb
