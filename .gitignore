@@ -6,3 +6,7 @@
 *.parquet
 *.csv
 project_copy.ipynb
+project_copy2.ipynb
+
+mlflow.db
+mlruns/
