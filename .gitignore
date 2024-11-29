@@ -7,6 +7,6 @@
 *.csv
 project_copy.ipynb
 project_copy2.ipynb
-
+*.zip
 mlflow.db
 mlruns/
