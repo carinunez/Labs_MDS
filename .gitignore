@@ -7,3 +7,5 @@
 *.csv
 *mlruns/
 *mlflow.db
+*.zip
+*.rar
