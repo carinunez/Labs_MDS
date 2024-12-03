@@ -1,0 +1,14 @@
+[
+    {
+        "Age": 25,
+        "Gender": 0,
+        "EducationLevel": 3,
+        "ExperienceYears": 3,
+        "PreviousCompanies": 4,
+        "DistanceFromCompany": 20,
+        "InterviewScore": 98.0,
+        "SkillScore": 97.0,
+        "PersonalityScore": 99.0,
+        "RecruitmentStrategy": 2
+    }
+]
