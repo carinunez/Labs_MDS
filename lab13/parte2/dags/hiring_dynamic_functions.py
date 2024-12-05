@@ -37,17 +37,17 @@ def split_data(**kwargs):
     date = kwargs.get('ds')
 
     df = pd.read_csv(join('.', 'dags', date, 'preprocessed', 'data.csv'))
-    X = df.drop('HiringDecision')
+    X = df.drop(columns=['HiringDecision'])
     y = df['HiringDecision']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-                                                        stratify=True,
+                                                        stratify=y,
                                                         random_state=29)
 
-    X_train.to_csv(join('.', 'dags', date, 'splits', 'X_train.csv'))
-    X_test.to_csv(join('.', 'dags', date, 'splits', 'X_test.csv'))
-    y_train.to_csv(join('.', 'dags', date, 'splits', 'y_train.csv'))
-    y_test.to_csv(join('.', 'dags', date, 'splits', 'y_test.csv'))
+    X_train.to_csv(join('.', 'dags', date, 'splits', 'X_train.csv'), index=False)
+    X_test.to_csv(join('.', 'dags', date, 'splits', 'X_test.csv'), index=False)
+    y_train.to_csv(join('.', 'dags', date, 'splits', 'y_train.csv'), index=False)
+    y_test.to_csv(join('.', 'dags', date, 'splits', 'y_test.csv'), index=False)
 
 def train_model(model, **kwargs):
     date = kwargs.get('ds')
@@ -59,7 +59,7 @@ def train_model(model, **kwargs):
         ('nada', 'passthrough', X_train.select_dtypes(include='category').columns)
     ],
     verbose_feature_names_out=True)
-    clasico.set_output('pandas')
+    clasico.set_output(transform='pandas')
 
     pipe_clasica = Pipeline([
         ('col_trans', clasico),
@@ -69,7 +69,7 @@ def train_model(model, **kwargs):
     model_pipe.fit(X_train, y_train)
 
 
-    with open(join('.', 'dags', date, 'models', f'{model.__name__}.zlib' 'wb')) as modelfile:
+    with open(join('.', 'dags', date, 'models', f'{model.__name__}.zlib'), 'wb') as modelfile:
         joblib.dump(model_pipe, modelfile)
 
 def evaluate_models(model_name, **kwargs):

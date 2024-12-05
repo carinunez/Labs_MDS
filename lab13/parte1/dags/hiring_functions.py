@@ -1,5 +1,6 @@
 import numpy as np 
 import pandas as pd 
+import logging
 import os
 from os.path import join
 from datetime import datetime
@@ -26,17 +27,18 @@ def split_data(**kwargs):
     date = kwargs.get('ds')
 
     df = pd.read_csv(join('.', 'dags', date, 'raw', 'data_1.csv'))
-    X = df.drop('HiringDecision')
+    X = df.drop(columns=['HiringDecision'])
     y = df['HiringDecision']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-                                                        stratify=True,
+                                                        stratify=y,
                                                         random_state=29)
 
-    X_train.to_csv(join('.', 'dags', date, 'splits', 'X_train.csv'))
-    X_test.to_csv(join('.', 'dags', date, 'splits', 'X_test.csv'))
-    y_train.to_csv(join('.', 'dags', date, 'splits', 'y_train.csv'))
-    y_test.to_csv(join('.', 'dags', date, 'splits', 'y_test.csv'))
+    # exporta los datasets sin index
+    X_train.to_csv(join('.', 'dags', date, 'splits', 'X_train.csv'),index=False)
+    X_test.to_csv(join('.', 'dags', date, 'splits', 'X_test.csv'),  index=False)
+    y_train.to_csv(join('.', 'dags', date, 'splits', 'y_train.csv'), index=False)
+    y_test.to_csv(join('.', 'dags', date, 'splits', 'y_test.csv'), index=False)
 
 def preprocess_and_train(**kwargs):
     date = kwargs.get('ds')
@@ -51,7 +53,7 @@ def preprocess_and_train(**kwargs):
         ('nada', 'passthrough', X_train.select_dtypes(include='category').columns)
     ],
     verbose_feature_names_out=True)
-    clasico.set_output('pandas')
+    clasico.set_output(transform='pandas')
 
     rf = RandomForestClassifier(random_state=29)
 
@@ -63,10 +65,15 @@ def preprocess_and_train(**kwargs):
     rf_pipe.fit(X_train, y_train)
     y_pred = rf_pipe.predict(X_test)
     
-    print("F1-Score:", f1_score(y_true=y_test, y_pred=y_pred, average='weighted')) 
-    print("Accuracy:", accuracy_score(y_true=y_test, y_pred=y_pred)) 
+    logging.info('y test:', y_test)
+    logging.info('Predicted:', y_pred)
+    
+    accuracy = accuracy_score(y_true=y_test, y_pred=y_pred)
+    logging.info("Accuracy:", accuracy) 
+    f1 = f1_score(y_true=y_test, y_pred=y_pred, average='weighted')
+    logging.info("F1-Score:", f1 )
 
-    with open(join('.', 'dags', date, 'models','randomforest.zlib' 'wb')) as randomfile:
+    with open(join('.', 'dags', date, 'models','randomforest.zlib'), 'wb') as randomfile:
         joblib.dump(rf_pipe, randomfile)
 
 def predict(file, model_path):
