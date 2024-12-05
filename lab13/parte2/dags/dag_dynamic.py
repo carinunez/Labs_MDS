@@ -6,7 +6,7 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 from hiring_dynamic_functions import create_folders, load_and_merge, split_data, train_model, evaluate_models
-from sklearrn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 def choose_branch(**kwargs):
     date = kwargs.get('ds')
@@ -22,7 +22,7 @@ def choose_branch(**kwargs):
 start_date = datetime(2024, 10, 1)
 default_args = {
     'owner': 'airflow',
-    'depends_on_past': False,  # Evita backfill
+    # 'depends_on_past': False,  # Evita backfill
     'start_date': start_date,
     'retries': 0,  # No intentos adicionales
 }
@@ -32,8 +32,8 @@ with DAG(
     default_args=default_args,
     schedule_interval='0 15 5 * *',  
     catchup=True,  # Realiza backfill
-    description='DAG dinámico para contratación',
-    tags=['example', 'dinamico', 'contratación']  # Opcional, etiquetas
+    description='DAG lineal para contratación',
+    tags=['example', 'lineal', 'contratación']  # Opcional, etiquetas
 ) as dag:
 
     # Definimos tareas dummy como placeholders
@@ -75,23 +75,12 @@ with DAG(
         python_callable=train_model(DecisionTreeClassifier(random_state=29)),
         provide_context=True
     )
-    # tarea_8 = PythonOperator(
-    #     task_id='preprocess_train',
-    #     # python_callable=preprocess_and_train,
-    #     provide_context=True
-    # )
-    # tarea_6 = PythonOperator(
-    #     task_id='to_gradio_app',
-    #     # python_callable=gradio_interface,
-    #     provide_context=True
-    # )
+
     fin = EmptyOperator(task_id='fin')
 
     # Definimos la estructura lineal de las tareas
-    tarea1 >> tarea2 >> tarea3 >> tarea_4
-    tarea4 >> tarea5 >> tarea6 >> tarea7 >> fin
-    tarea4 >> tarea4b >> tarea5 >> tarea6 >> tarea7 >> fin
-
-    # tarea_1 >> tarea_2 >> tarea_3 >> tarea_4 >> tarea_5 >> tarea_6 >> fin
+    tarea_1 >> tarea_2 >> tarea_3 >> tarea_4
+    tarea_4 >> tarea_5 >> tarea_6 >> tarea_7 >> fin
+    tarea_4 >> tarea_4b >> tarea_5 >> tarea_6 >> tarea_7 >> fin
 
     #data 2: https://gitlab.com/eduardomoyab/laboratorio-13/-/raw/main/files/data_2.csv
