@@ -1,5 +1,6 @@
 import numpy as np 
 import pandas as pd 
+import logging
 import os
 from os.path import join
 from datetime import datetime
@@ -28,8 +29,12 @@ def load_and_merge(**kwargs):
     date = kwargs.get('ds')
     
     df1 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_1.csv'))
-    df2 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_2.csv'))
-    data = pd.concat([df1, df2], axis=0)
+    
+    if os.path.existsjoin('.', 'dags', date, 'raw', 'data_2.csv'):
+        df2 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_2.csv'))
+        data = pd.concat([df1, df2], axis=0)
+    else:
+        data = df1.copy()
 
     data.to_csv(join('.', 'dags', date, 'preprocessed', 'data.csv'))
 
@@ -67,8 +72,7 @@ def train_model(model, **kwargs):
     ])
     model_pipe = pipe_clasica
     model_pipe.fit(X_train, y_train)
-
-
+    
     with open(join('.', 'dags', date, 'models', f'{model.__name__}.zlib'), 'wb') as modelfile:
         joblib.dump(model_pipe, modelfile)
 
@@ -89,7 +93,7 @@ def evaluate_models(model_name, **kwargs):
             max_acc = acc
             best_model = file.split('.')[0]
 
-    print(f"Model {best_model} Accuracy: {max_acc}")
+    logging.info(f"Model {best_model} Accuracy: {max_acc}")
 
 
 if __name__=='__main__':
