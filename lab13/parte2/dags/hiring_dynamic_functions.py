@@ -30,7 +30,7 @@ def load_and_merge(**kwargs):
     
     df1 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_1.csv'))
     
-    if os.path.existsjoin('.', 'dags', date, 'raw', 'data_2.csv'):
+    if os.path.exists(join('.', 'dags', date, 'raw', 'data_2.csv')):
         df2 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_2.csv'))
         data = pd.concat([df1, df2], axis=0)
     else:
@@ -72,7 +72,7 @@ def train_model(model, **kwargs):
     ])
     model_pipe = pipe_clasica
     model_pipe.fit(X_train, y_train)
-    
+
     with open(join('.', 'dags', date, 'models', f'{model.__name__}.zlib'), 'wb') as modelfile:
         joblib.dump(model_pipe, modelfile)
 
