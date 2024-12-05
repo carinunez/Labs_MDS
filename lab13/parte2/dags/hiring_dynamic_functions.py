@@ -1,0 +1,96 @@
+import numpy as np 
+import pandas as pd 
+import os
+from os.path import join
+from datetime import datetime
+import joblib
+import gradio as gr
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score, accuracy_score
+from sklearn.model_selection import train_test_split
+
+
+
+def create_folders(**kwargs):
+    date = kwargs.get('ds')
+    print(type(date), date)
+
+    os.makedirs(join('.', 'dags', date), exist_ok=True)
+    os.makedirs(join('.', 'dags', date, "raw"), exist_ok=True)
+    os.makedirs(join('.', 'dags', date, "preprocessed"), exist_ok=True)
+    os.makedirs(join('.', 'dags', date, "splits"), exist_ok=True)
+    os.makedirs(join('.', 'dags', date, "models"), exist_ok=True)
+
+def load_and_merge(**kwargs):
+    date = kwargs.get('ds')
+    
+    df1 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_1.csv'))
+    df2 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_2.csv'))
+    data = pd.concat([df1, df2], axis=0)
+
+    data.to_csv(join('.', 'dags', date, 'preprocessed', 'data.csv'))
+
+def split_data(**kwargs):
+    date = kwargs.get('ds')
+
+    df = pd.read_csv(join('.', 'dags', date, 'preprocessed', 'data.csv'))
+    X = df.drop('HiringDecision')
+    y = df['HiringDecision']
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
+                                                        stratify=True,
+                                                        random_state=29)
+
+    X_train.to_csv(join('.', 'dags', date, 'splits', 'X_train.csv'))
+    X_test.to_csv(join('.', 'dags', date, 'splits', 'X_test.csv'))
+    y_train.to_csv(join('.', 'dags', date, 'splits', 'y_train.csv'))
+    y_test.to_csv(join('.', 'dags', date, 'splits', 'y_test.csv'))
+
+def train_model(model, **kwargs):
+    date = kwargs.get('ds')
+    X_train = pd.read_csv(join('.', 'dags', date, 'splits', 'X_train.csv'))
+    y_train = pd.read_csv(join('.', 'dags', date, 'splits', 'y_train.csv'))
+
+    clasico = ColumnTransformer([
+        ('minmas', MinMaxScaler(), X_train.select_dtypes(include='number').columns),
+        ('nada', 'passthrough', X_train.select_dtypes(include='category').columns)
+    ],
+    verbose_feature_names_out=True)
+    clasico.set_output('pandas')
+
+    pipe_clasica = Pipeline([
+        ('col_trans', clasico),
+        ('random', model)
+    ])
+    model_pipe = pipe_clasica
+    model_pipe.fit(X_train, y_train)
+
+
+    with open(join('.', 'dags', date, 'models', f'{model.__name__}.zlib' 'wb')) as modelfile:
+        joblib.dump(model_pipe, modelfile)
+
+def evaluate_models(model_name, **kwargs):
+    date = kwargs.get('ds')
+
+    max_acc = 0.
+    best_model = None
+    for file in os.listdir(join('.', 'dags', date, 'models')):
+        with open(join('.', 'dags', date, 'models', str(file))) as jlfile:
+            model_pipe = joblib.load(jlfile)
+
+        X_test = pd.read_csv(join('.', 'dags', date, 'splits', 'X_test.csv'))
+        y_test = pd.read_csv(join('.', 'dags', date, 'splits', 'y_test.csv'))
+        y_pred = model_pipe.predict(X_test)
+        acc = accuracy_score(y_true=y_test, y_pred=y_pred)
+        if acc > max_acc:
+            max_acc = acc
+            best_model = file.split('.')[0]
+
+    print(f"Model {best_model} Accuracy: {max_acc}")
+
+
+if __name__=='__main__':
+    print(os.listdir("."))
