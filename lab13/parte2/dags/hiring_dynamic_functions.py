@@ -29,7 +29,6 @@ def load_and_merge(**kwargs):
     date = kwargs.get('ds')
     
     df1 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_1.csv'))
-    
     if os.path.exists(join('.', 'dags', date, 'raw', 'data_2.csv')):
         df2 = pd.read_csv(join('.', 'dags', date, 'raw', 'data_2.csv'))
         data = pd.concat([df1, df2], axis=0)
@@ -66,24 +65,24 @@ def train_model(model, **kwargs):
     verbose_feature_names_out=True)
     clasico.set_output(transform='pandas')
 
-    pipe_clasica = Pipeline([
+    model_pipe = Pipeline([
         ('col_trans', clasico),
         ('random', model)
     ])
-    model_pipe = pipe_clasica
+
     model_pipe.fit(X_train, y_train)
 
-    with open(join('.', 'dags', date, 'models', f'{model.__name__}.zlib'), 'wb') as modelfile:
+    with open(join('.', 'dags', date, 'models', f'{model.__class__.__name__}.zlib'), 'wb') as modelfile:
         joblib.dump(model_pipe, modelfile)
 
-def evaluate_models(model_name, **kwargs):
+def evaluate_models(**kwargs):
     date = kwargs.get('ds')
 
     max_acc = 0.
     best_model = None
     for file in os.listdir(join('.', 'dags', date, 'models')):
-        with open(join('.', 'dags', date, 'models', str(file))) as jlfile:
-            model_pipe = joblib.load(jlfile)
+        with open(join('.', 'dags', date, 'models', str(file)), 'rb') as modelfile:
+            model_pipe = joblib.load(modelfile)
 
         X_test = pd.read_csv(join('.', 'dags', date, 'splits', 'X_test.csv'))
         y_test = pd.read_csv(join('.', 'dags', date, 'splits', 'y_test.csv'))
@@ -93,7 +92,7 @@ def evaluate_models(model_name, **kwargs):
             max_acc = acc
             best_model = file.split('.')[0]
 
-    logging.info(f"Model {best_model} Accuracy: {max_acc}")
+    logging.info(f"Besto model: {best_model}, Accuracy: {max_acc}")
 
 
 if __name__=='__main__':
