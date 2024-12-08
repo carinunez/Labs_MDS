@@ -81,6 +81,7 @@ def evaluate_models(**kwargs):
     max_acc = 0.
     best_model = None
     for file in os.listdir(join('.', 'dags', date, 'models')):
+        model_name = file.split('.')[0]
         with open(join('.', 'dags', date, 'models', str(file)), 'rb') as modelfile:
             model_pipe = joblib.load(modelfile)
 
@@ -88,11 +89,16 @@ def evaluate_models(**kwargs):
         y_test = pd.read_csv(join('.', 'dags', date, 'splits', 'y_test.csv'))
         y_pred = model_pipe.predict(X_test)
         acc = accuracy_score(y_true=y_test, y_pred=y_pred)
+        logging.info(f"Model: {model_name}, Accuracy: {acc}")
         if acc > max_acc:
             max_acc = acc
-            best_model = file.split('.')[0]
+            best_model_name = model_name
+            best_model = model_pipe
 
-    logging.info(f"Besto model: {best_model}, Accuracy: {max_acc}")
+    with open(join('.', 'dags', date, 'models', 'besto_'+str(file)), 'wb') as modelfile:
+            model_pipe = joblib.dump(best_model, modelfile)
+            
+    logging.info(f"Besto model: {best_model_name}, Accuracy: {max_acc}")
 
 
 if __name__=='__main__':

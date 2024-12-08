@@ -92,4 +92,4 @@ with DAG(
     # Definimos la estructura lineal de las tareas
     tarea_1 >> tarea_2 >>  branch_1 # Tronco
     branch_1 >> [dl_data_1, dl_data_2] >> loadmerge >> split
-    split >> [train_operator(RandomForestClassifier()), train_operator(DecisionTreeClassifier()), train_operator(DummyClassifier()) ] >> eval >> fin
+    split >> [train_operator(RandomForestClassifier(random_state=29)), train_operator(DecisionTreeClassifier(random_state=29)), train_operator(DummyClassifier(random_state=29)) ] >> eval >> fin

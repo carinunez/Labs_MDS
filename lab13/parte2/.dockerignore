@@ -4,3 +4,4 @@ dockerfile
 *.html
 *.ipynb
 nico_data.json
+*.jpg
