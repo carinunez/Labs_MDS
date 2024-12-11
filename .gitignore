@@ -1,4 +1,5 @@
 .venv
+.shap_env
 \secuencia_plaza
 *.PNG
 *.jpg
