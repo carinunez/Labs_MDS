@@ -1,4 +1,4 @@
-.venv
+.venv*
 .shap_env
 \secuencia_plaza
 *.PNG
@@ -11,3 +11,5 @@ project_copy2.ipynb
 *.zip
 mlflow.db
 mlruns/
+__pycache__
+*.txt

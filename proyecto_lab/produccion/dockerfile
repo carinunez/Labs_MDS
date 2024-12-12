@@ -1,0 +1,27 @@
+FROM python:3.10-slim
+
+WORKDIR /adaval/hiring
+ENV AIRFLOW_HOME=/adaval/hiring
+
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y curl
+
+# RUN useradd adaval
+# USER adaval
+
+RUN airflow db init
+
+EXPOSE 8080
+
+# Crea el usuario admin de Airflow
+RUN airflow users create --role Admin --username admin --email a.uribe5715@gmail.com \
+ --firstname Caro --lastname Nuñez --password admin
+
+# # Copia las carpetas necesarias al contenedor
+# COPY ./dags $AIRFLOW_HOME/dags
+# COPY ./logs $AIRFLOW_HOME/logs
+# COPY ./plugins $AIRFLOW_HOME/plugins
+
+# Comando para iniciar el servidor web y el scheduler
+CMD ["sh", "-c", "airflow webserver -p 8080 & airflow scheduler"]

@@ -5,12 +5,13 @@ from sklearn.pipeline import Pipeline
 import datetime
 import pandas as pd
 
+print(0 ==None)
 
 
-date = pd.to_datetime(1000000000, unit='s')
-# date = datetime.datetime.fromtimestamp(1000000000)
-tsdiff = (date + pd.DateOffset(months=10))-date
-print(tsdiff.as_unit('days'))
+# date = pd.to_datetime(1000000000, unit='s')
+# # date = datetime.datetime.fromtimestamp(1000000000)
+# tsdiff = (date + pd.DateOffset(months=10))-date
+# print(tsdiff.as_unit('days'))
 
 # with open("bla.zlib", "wb") as we:
 #     joblib.dump(Pipeline([RandomForestClassifier()]),we)
